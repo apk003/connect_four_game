@@ -3,50 +3,53 @@ import random
 class Board:
   # Represents a connect four board
 
-  def __init__(self, board_data=[]):
+    def __init__(self, board_data=[]):
 
-    self.clean_board = [
-        [" ", " ", " ", " ", " ", " ", " "],
-        [" ", " ", " ", " ", " ", " ", " "],
-        [" ", " ", " ", " ", " ", " ", " "],
-        [" ", " ", " ", " ", " ", " ", " "],
-        [" ", " ", " ", " ", " ", " ", " "],
-        [" ", " ", " ", " ", " ", " ", " "],
-      ]
+        self.clean_board = [
+            [" ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " "],
+            ]
 
-    if board_data == []:
-      self.data = self.clean_board
+        if board_data == []:
+            self.data = self.clean_board
 
-    else:
-      self.data = board_data
-
-
-  def __getitem__(self,key):
-    return self.data[key]
+        else:
+            self.data = board_data
 
 
-  def add(self, row, col, value):
-    # Adds to board
-    self.data[row][col] = value
+    def __getitem__(self,key):
+        return self.data[key]
+
+    def __len__(self):
+        return len(self.data)
 
 
-  def clear(self):
-    # Clears board
-    self.data = self.clean_board
+    def add(self, row, col, value):
+        # Adds to board
+        self.data[row][col] = value
 
 
-  def show(self):
-    # Displays board
+    def clear(self):
+        # Clears board
+        self.data = self.clean_board
 
-    print("  1   2   3   4   5   6   7")
-    for row in self.data:
 
-      print("+---+---+---+---+---+---+---+")
-      print("|   |   |   |   |   |   |   |")
-      print("| {} | {} | {} | {} | {} | {} | {} |".format(row[0], row[1], row[2], row[3], row[4], row[5], row[6]))
-      print("|   |   |   |   |   |   |   |")
+    def show(self):
+        # Displays board
 
-    print("+---+---+---+---+---+---+---+\n\n")
+        print("  1   2   3   4   5   6   7")
+        for row in self.data:
+
+            print("+---+---+---+---+---+---+---+")
+            print("|   |   |   |   |   |   |   |")
+            print("| {} | {} | {} | {} | {} | {} | {} |".format(row[0], row[1], row[2], row[3], row[4], row[5], row[6]))
+            print("|   |   |   |   |   |   |   |")
+
+        print("+---+---+---+---+---+---+---+\n\n")
 
 
 
@@ -59,6 +62,7 @@ class ConnectFour:
 
       self.player = None
       self.opponent = None
+      self.turn_count = 0
 
       self.run_game()
 
@@ -104,10 +108,29 @@ class ConnectFour:
       return choice
 
 
-    def win_board(self, user):
-      # Determines if a player won
+    def won_game(self, user):
 
-      pass
+        # Checks horizontals
+        for col in range(len(self.board[0])):
+            for row in range(len(self.board)-3):
+                if self.board[row][col] == user and self.board[row+1][col] == user and self.board[row+2][col] == user and self.board[row+3][col] == user:
+                    return True
+
+        # Checks verticals
+        for row in range(len(self.board)):
+            for col in range(len(self.board[0])-3):
+                if self.board[row][col] == user and self.board[row][col+1] == user and self.board[row][col+2] == user and self.board[row][col+3] == user:
+                    return True
+
+        # Checks diagonals
+        for row in range(len(self.board) - 3):
+            for col in range(3, len(self.board[0])):
+                if self.board[row][col] == user and self.board[row+1][col-1] == user and self.board[row+2][col-2] == user and self.board[row+3][col-3] == user:
+                    return True
+
+        # Accounts for filled board
+        if self.turn_count == 42:
+            return 'tie'
 
 
     def run_game(self):
@@ -137,31 +160,50 @@ class ConnectFour:
           print("Invalid choice.")
 
       while self.in_progress == True:
-        if self.turn == "player":
-          choice = input("Choose an open column. 1 - 7\n")
+          if self.turn == "player":
+              choice = input("Choose an open column. 1 - 7\n")
 
-          try:
-              choice = int(choice)
+              try:
+                  choice = int(choice)
 
-          except TypeError:
-              print("Invalid space.")
-
-          else:
-              if choice not in [1, 2, 3, 4, 5, 6, 7]:
-                print("Invalid space.")
-
-              elif self.find_space(choice-1) == None:
-                print("Invalid space.")
+              except TypeError:
+                  print("Invalid space.")
 
               else:
-                self.set_space(choice-1, self.player)
-                self.board.show()
-                self.turn = "opponent"
+                  if choice not in [1, 2, 3, 4, 5, 6, 7]:
+                      print("Invalid space.")
 
-        else:
-          self.set_space(self.assess_board(), self.opponent)
-          self.board.show()
-          self.turn = "player"
+                  elif self.find_space(choice-1) == None:
+                      print("Invalid space.")
+
+                  else:
+                      self.set_space(choice-1, self.player)
+                      self.board.show()
+                      self.turn = "opponent"
+
+                      if self.won_game(self.player):
+                          print("You have won!")
+                          self.in_progress = False
+
+                      elif self.won_game(self.player) == 'tie':
+                          print("It's a tie!")
+                          self.in_progress = False
+
+
+          else:
+            self.set_space(self.assess_board(), self.opponent)
+            self.board.show()
+            self.turn = "player"
+
+            if self.won_game(self.opponent):
+                print("You have lost!")
+                self.in_progress = False
+
+            elif self.won_game(self.opponent) == 'tie':
+                print("It's a tie!")
+                self.in_progress = False
+
+
 
 
 boardd = Board()
